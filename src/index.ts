@@ -1,22 +1,24 @@
-import express from 'express';
-import cors from 'cors';
+import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import { connectDB } from './config/db';
+import app from './app';
 
 dotenv.config();
-connectDB();
 
-const app = express();
-const port = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI || '';
 
-app.use(cors());
-app.use(express.json());
+async function startServer() {
+  try {
+    await mongoose.connect(MONGO_URI);
+    console.log('MongoDB connected');
 
-app.get('/', (_req, res) => {
-  res.send('API is running...');
-});
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    console.error('Failed to connect to MongoDB', err);
+    process.exit(1);
+  }
+}
 
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
-
+startServer();
