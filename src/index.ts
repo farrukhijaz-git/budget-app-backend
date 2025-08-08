@@ -1,8 +1,15 @@
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 import app from './app';
 
-dotenv.config();
+import path from 'path';
+import fs from 'fs';
+// Always load .env from backend/ directory
+const envPath = path.resolve(__dirname, '../.env');
+if (fs.existsSync(envPath)) {
+  require('dotenv').config({ path: envPath });
+} else {
+  require('dotenv').config();
+}
 
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || '';

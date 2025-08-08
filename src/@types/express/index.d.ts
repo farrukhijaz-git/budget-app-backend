@@ -1,10 +1,17 @@
 // src/@types/express/index.d.ts
-import { UserDocument } from '../../models/User'; // or whatever your user type is
+
+// src/@types/express/index.d.ts
+
+export interface AuthUser {
+  uid: string;
+  email: string;
+  name?: string;
+}
 
 declare global {
   namespace Express {
     interface Request {
-      user?: UserDocument; // or use: { id: string } if simpler
+      user?: AuthUser;
     }
   }
 }

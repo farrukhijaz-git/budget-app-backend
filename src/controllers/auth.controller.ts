@@ -19,12 +19,16 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
-  if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+  if (!user || !user.password) return res.status(400).json({ message: 'Invalid credentials' });
 
-  const isMatch = await bcrypt.compare(password, user.password);
+  const isMatch = await bcrypt.compare(password, user.password || '');
   if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
-  const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1d' });
+  const token = jwt.sign({ 
+    id: user._id, 
+    email: user.email, 
+    name: user.name 
+  }, JWT_SECRET, { expiresIn: '1d' });
   // Return user info (including name) along with token for frontend AuthContext
   res.json({ user: { id: user._id, name: user.name, email: user.email }, token });
 };

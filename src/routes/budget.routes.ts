@@ -5,11 +5,8 @@ import {
   updateBudget,
   deleteBudget,
 } from '../controllers/budget.controller';
-import auth from '../middleware/auth.middleware';
 
 const router = express.Router();
-
-router.use(auth);
 
 router.post('/', createBudget);
 router.get('/', getBudgets);

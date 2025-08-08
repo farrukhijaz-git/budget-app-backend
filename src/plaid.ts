@@ -1,4 +1,3 @@
-// backend/src/services/plaidService.ts
 import { Configuration, PlaidApi, PlaidEnvironments } from 'plaid';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -13,6 +12,5 @@ const config = new Configuration({
   },
 });
 
-console.log(process.env.PLAID_CLIENT_ID, process.env.PLAID_SECRET, process.env.PLAID_ENV)
-
-export const plaidClient = new PlaidApi(config);
+const plaidClient = new PlaidApi(config);
+export default plaidClient;

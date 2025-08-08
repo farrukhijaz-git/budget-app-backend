@@ -1,14 +1,22 @@
 import { Request, Response } from 'express';
 import Expense from '../models/Expense';
 import User from '../models/User';
+import { AuthUser } from '../@types/express';
+
+interface AuthenticatedRequest extends Request {
+  user?: AuthUser;
+}
 
 import { plaidClient } from '../config/plaid';
 // Create a new expense
-export const createExpense = async (req: Request, res: Response) => {
+export const createExpense = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    if (!req.user?.uid) {
+      return res.status(400).json({ message: 'User not authenticated' });
+    }
     const { name, amount, date, category } = req.body;
     const expense = new Expense({
-      userId: req.user.id,
+      userId: req.user.uid,
       name,
       amount,
       date,
@@ -21,13 +29,31 @@ export const createExpense = async (req: Request, res: Response) => {
   }
 };
 
-export const getExpenses = async (req: Request, res: Response) => {
-  const expenses = await Expense.find({ userId: req.user.id }).sort({ date: -1 });
-  res.json(expenses);
+export const getExpenses = async (req: AuthenticatedRequest, res: Response) => {
+  console.log('[getExpenses] Starting controller...');
+  console.log('[getExpenses] req.user:', req.user);
+  
+  if (!req.user?.uid) {
+    console.log('[getExpenses] No user or uid in request');
+    return res.status(400).json({ message: 'User not authenticated' });
+  }
+  
+  console.log('[getExpenses] About to query expenses for uid:', req.user.uid);
+  try {
+    const expenses = await Expense.find({ userId: req.user.uid }).sort({ date: -1 });
+    console.log('[getExpenses] Found expenses:', expenses.length);
+    res.json(expenses);
+  } catch (error) {
+    console.error('[getExpenses] Error:', error);
+    res.status(500).json({ message: 'Failed to get expenses', error });
+  }
 };
 
-export const syncExpensesFromPlaid = async (req: Request, res: Response) => {
-  const user = await User.findById(req.user.id);
+export const syncExpensesFromPlaid = async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user?.uid) {
+    return res.status(400).json({ message: 'User not authenticated' });
+  }
+  const user = await User.findById(req.user.uid);
   if (!user?.plaidAccessToken) return res.status(400).json({ message: 'No linked Plaid account' });
 
   try {
