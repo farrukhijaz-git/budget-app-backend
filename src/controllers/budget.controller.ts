@@ -42,3 +42,39 @@ export const deleteBudget = async (req: AuthenticatedRequest, res: Response) => 
   await Budget.findOneAndDelete({ _id: req.params.id, userId: req.user.uid });
   res.status(204).send();
 };
+
+// Bulk save/update budgets
+export const saveBudgets = async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user?.uid) {
+    return res.status(400).json({ message: 'User not authenticated' });
+  }
+  
+  try {
+    const { budgets } = req.body;
+    if (!Array.isArray(budgets)) {
+      return res.status(400).json({ message: 'Budgets must be an array' });
+    }
+
+    // Delete existing budgets for this user first
+    await Budget.deleteMany({ userId: req.user.uid });
+
+    // Create new budgets (only save non-zero amounts)
+    const budgetsToSave = budgets.filter((b: any) => b.amount > 0);
+    const savedBudgets = [];
+
+    for (const budgetData of budgetsToSave) {
+      const budget = new Budget({
+        userId: req.user.uid,
+        category: budgetData.category,
+        amount: budgetData.amount
+      });
+      const saved = await budget.save();
+      savedBudgets.push(saved);
+    }
+
+    res.json({ budgets: savedBudgets });
+  } catch (error) {
+    console.error('Error saving budgets:', error);
+    res.status(500).json({ message: 'Failed to save budgets' });
+  }
+};

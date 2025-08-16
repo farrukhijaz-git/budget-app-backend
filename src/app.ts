@@ -13,6 +13,7 @@ import plaidRoutes from './routes/plaid.routes';
 import plaidTransactionsRoutes from './routes/plaid.transactions.routes';
 import userRoutes from './routes/user.routes';
 import testRoutes from './routes/test.routes';
+import dashboardRoutes from './routes/dashboard.routes';
 import unifiedAuth from './middleware/unifiedAuth.middleware';
 import { ensureUserInDb } from './middleware/ensureUserInDb';
 
@@ -29,6 +30,7 @@ app.get('/', (_req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/test', testRoutes);
+app.use('/api/dashboard', unifiedAuth, ensureUserInDb, dashboardRoutes);
 app.use('/api/budget', unifiedAuth, ensureUserInDb, budgetRoutes);
 app.use('/api/user', unifiedAuth, ensureUserInDb, userRoutes);
 app.use('/api/expenses', unifiedAuth, ensureUserInDb, expenseRoutes);
